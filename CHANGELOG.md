@@ -14,6 +14,14 @@ the changes merged after the reporter's 0.14.3 bump, because it is the first rel
 
 ## [Unreleased]
 
+### Changed
+
+- **The console no longer loads Google Fonts.** JetBrains Mono and Schibsted Grotesk are now bundled with the UI from the `@fontsource` packages and served by Podium itself, so opening the console makes no request to a third-party host. The Content-Security-Policy drops `fonts.googleapis.com` and `fonts.gstatic.com`: styles and fonts come from the server only. SPEC 7.7 and DECISIONS 31 say so.
+
+### Fixed
+
+- **The reporter refuses a plan approval whose mode is not one a plan can be approved in.** Approving a plan from Podium sets the session's permission mode, and the mod passed the server's `mode` through unchecked, so a compromised or impersonated server could put a session in `bypassPermissions`. The mod now takes only `auto`, `acceptEdits` or `default` (`PLAN_MODES`) and reports any other approval as refused, leaving the plan dialog to the terminal.
+
 ## [1.1.0] - 2026-10-16
 
 ### Added

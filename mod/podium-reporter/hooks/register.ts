@@ -51,7 +51,7 @@ import { isDelivery, Transport, type FetchLike } from './transport.ts';
 import { activityCall, activityText, explainPrompt } from './failures.ts';
 import { pickIdentity, worthHolding, type Identity } from './identity.ts';
 import { hostOf, isMachineId, MACHINE_ID_KEY, machineIdPath, machineInfo, newMachineId, parseMachineIdFile } from './machine.ts';
-import type { Ask, Delivery, DeliveryResult, MachineInfo, RespondInfo, RespondKind, RespondLevel } from './protocol.ts';
+import { PLAN_MODES, type Ask, type Delivery, type DeliveryResult, type MachineInfo, type RespondInfo, type RespondKind, type RespondLevel } from './protocol.ts';
 import {
   answeredLine,
   answersMap,
@@ -849,7 +849,9 @@ async function planRace($: Engine, r: Runtime, e: { tool_use_id: string; agentId
 
 /** A plan's approval, from either wait on its ask: handed to the PermissionRequest hook, and checked that it took. */
 function takeApproval($: Engine, a: OpenAsk, d: Delivery): void {
-  if (d.kind !== 'plan-approve' || !responding(rt, 'plan-approve') || a.approval) {
+  // The mode becomes a setMode for the session, so only the modes a plan can be approved in are taken: a server never
+  // gets to put a session in bypassPermissions (or any mode outside PLAN_MODES) by approving a plan.
+  if (d.kind !== 'plan-approve' || !responding(rt, 'plan-approve') || a.approval || !d.mode || !PLAN_MODES.includes(d.mode)) {
     queueResult(a.sessionId, d.id, 'refused');
     return;
   }
@@ -1393,7 +1395,7 @@ export const register: Register = (on, rawOptions) => {
     if (e.tool_name === 'ExitPlanMode') {
       const a = responding(r, 'plan-approve') ? planAskOf(agentId) : undefined;
       const d = a ? await approvalFromPodium($, a) : null;
-      if (!d || !d.mode) return next(e);
+      if (!d || !d.mode || !PLAN_MODES.includes(d.mode)) return next(e);
       // The transcript line waits for the call to resolve approved (planRace), so it never claims one that didn't take.
       return planApproval(e.tool_input, d.mode);
     }
