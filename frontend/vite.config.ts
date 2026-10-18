@@ -7,6 +7,10 @@ const apiTarget = `http://127.0.0.1:${process.env.PORT ?? "4317"}`;
 
 export default defineConfig({
   plugins: [react()],
+  build: {
+    // Never inline a font as a data: URL: the CSP's font-src is 'self' only, so an inlined font is refused.
+    assetsInlineLimit: (file) => (/\.woff2?$/.test(file) ? false : undefined),
+  },
   server: {
     proxy: {
       // Server-Sent Events: http-proxy streams the response as it arrives. The server sends
