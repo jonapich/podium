@@ -30,7 +30,7 @@ The operator uses shorthand in place of typing a full request out. Case-insensit
 
 ## Do Not
 
-- Edit directly on, push to, or merge a PR into `main` or `development` yourself — for any change, no matter how small (a one-line doc fix included) or how informal (no tracking issue). Changes reach either branch only through a PR, and merging is always the user's call, no exceptions. See "Always Branch First" below.
+- Edit directly on, push to, or merge a PR into `main` yourself — for any change, no matter how small (a one-line doc fix included) or how informal (no tracking issue). Changes reach `main` only through a PR, and merging is always the user's call, no exceptions. See "Always Branch First" below.
 - Commit secrets, API keys, tokens, or credentials.
 - Force-push, skip commit safety checks, or bypass signing without the user's explicit, in-the-moment approval.
 - Delegate any task via a fork, no matter how narrow or read-only it looks — no exception.
@@ -43,36 +43,17 @@ The operator uses shorthand in place of typing a full request out. Case-insensit
 
 ## Branching Model
 
-Two workflows exist. Whether a `development` branch exists on the remote picks which one applies:
+This fork has one long-lived branch, `main`. Every PR goes **branch → `main`**.
 
-```bash
-git ls-remote --exit-code --heads origin development
-```
+- Feature and fix PRs target `main` and are squash-merged. They add to `CHANGELOG.md`'s `[Unreleased]` section and never bump the version.
+- The version bump happens in a `release-prep/<version>` PR into `main`. The bump level comes from what accumulated under `[Unreleased]`, per SemVer. See Releases.
+- The integration branch is the throwaway branch an orchestrator creates for a parallel batch. It is created off `main` and its final PR targets `main`.
 
-Exit 0 means the development-branch workflow; any other exit means the standard workflow. Creating `development` is the opt-in, and the GitHub default branch stays `main` so a plain clone gets released code.
-
-This repo has a `development` branch, so it uses the development-branch workflow. Every PR goes **branch → `development` → `main`**.
-
-- `development` holds unreleased work and may be broken at any given time. Feature and fix PRs target it and are squash-merged.
-- `main` only moves on a release or a hotfix. A release is a PR from `development` to `main`, merged with a regular merge commit, never squashed (squashing makes the branches diverge). That PR is the release-candidate gate: it is valid only if all tests pass, with no breaking tests, conditions, or regressions.
-- The version bump happens in a `release-prep/<version>` PR into `development`, not in feature PRs. Feature PRs only add to `CHANGELOG.md`'s `[Unreleased]` section. The bump level comes from what accumulated there, per SemVer. See Releases.
-- Hotfixes branch from `main`, go to `main` by PR, and bump the patch version. The fix is then cherry-picked into `development` by a follow-up PR, when the user instructs it, so the branches don't drift.
-- The integration branch is the throwaway branch an orchestrator creates for a parallel batch. It is not `development`. It is created off `development` and its final PR targets `development`.
-
-GitHub's default branch stays `main` on purpose. Do not change it.
-
-**Closing issues.** A common convention is for feature PRs to use `Refs #N` and the release PR to carry `Closes #N`. This repo does the opposite:
-
-- A feature, fix or batch-final PR into `development` carries `Closes #N` for the issues it resolves, and the issue is closed when that PR merges. GitHub only acts on closing keywords for a PR into the default branch, so it will not do this by itself: after confirming the merge, close each issue with `gh issue close <N> --comment "Fixed in #<PR>; ships with the next release."` (the `pmm` step). Say in the issue that the change is on `development` and ships with the next release.
-- The `development` to `main` release PR closes nothing and carries no `Closes #N`. Its body names the version and quotes the CHANGELOG section.
-- The exception is a hotfix. The hotfix PR into `main` carries `Closes #N`, which GitHub honors because `main` is the default branch. Its backport PR into `development` carries `Refs #N`.
-- A sub-agent's PR into a batch integration branch still claims no `Closes #N`.
-
-Below, "the base branch" means `development` if it exists and `main` otherwise.
+**Closing issues.** A feature, fix or batch-final PR into `main` carries `Closes #N` for the issues it resolves; GitHub closes them when it merges, because `main` is the default branch. A sub-agent's PR into a batch integration branch claims no `Closes #N`.
 
 ## Always Branch First
 
-Before the first `Edit` or `Write` of *any* change to this repo — check the current branch. If it's `main` or `development`, create or switch to a working branch before touching a single file. Fork from the base branch (from `main` for hotfixes). This holds regardless of size ("just a typo fix"), formality ("no issue for this, just drafting"), or how the request was phrased ("draft a revised README" is still a change once you start writing it to disk) — the decision to skip a tracking issue and the decision to skip a branch are unrelated, and only the first is ever legitimate. `scripts/hooks/pre-commit` backstops this rule technically rather than relying on memory alone: it blocks commits on both `main` and `development`. Enable it once per clone with `git config core.hooksPath scripts/hooks`.
+Before the first `Edit` or `Write` of *any* change to this repo — check the current branch. If it's `main`, create or switch to a working branch before touching a single file. Branch from an up-to-date `main`. This holds regardless of size ("just a typo fix"), formality ("no issue for this, just drafting"), or how the request was phrased ("draft a revised README" is still a change once you start writing it to disk) — the decision to skip a tracking issue and the decision to skip a branch are unrelated, and only the first is ever legitimate. `scripts/hooks/pre-commit` backstops this rule technically rather than relying on memory alone: it blocks commits on `main` (and on `development`, which this fork does not use). Enable it once per clone with `git config core.hooksPath scripts/hooks`.
 
 ## Working Style
 
@@ -92,12 +73,11 @@ Order of operations for any tracked change.
 
 | Phase | Policy |
 |---|---|
-| Start | Branch first, synced from current `main` (standard) or `development` (development-branch workflow). |
+| Start | Branch first, synced from current `main`. |
 | Review (pre-PR) | Applies only when the branch changes code (logic, scripts, config with behavioral effect) — a docs/prose-only diff (`CLAUDE.md`, `CHANGELOG.md`, `README.md`, comments) has no code for `/code-review` to check and skips this row entirely; a mixed branch still runs it, scoped to the code files. When it applies, run `/code-review` on the branch **exactly once** before opening the PR, then apply its findings with `--fix` (or explicitly defer/note larger, out-of-scope suggestions with reasoning) — never loop back into a second automated round to "confirm" the fixes. Verification of the fixed code is the orchestrator's own job, done directly against the project's real test commands (see Commands), not by re-invoking the review. If that verification passes, move on to the PR; if it fails, stop and ask the user rather than re-running review. This caps the process at one review round plus one orchestrator-run verification pass — see "Do Not" for why a second round is off the table. Reserve post-PR `--comment`/`ultra` review for a genuinely separate pass (e.g. a deeper multi-agent review, or a check the user explicitly wants visible as PR comments), never as a stand-in for pre-PR confirmation. |
-| Develop → PR | The PR targets the base branch; `plugin.json`/manifest version bumps do not happen here. Changes land via PR; the user reviews and merges. Once a change — issue-tracked or informal — is complete, has been through pre-PR review above, and passes its relevant checks, commit, push, and open the PR without waiting for a separate go-ahead; that's normal completion of the work, not a separate action to confirm. Opening a PR is still a stopping point, not a launchpad — it doesn't authorize starting the next unit of work unprompted, and merging remains the user's call, always. |
-| Merge & cleanup | A branch is deleted only after its merge is confirmed, not assumed. Feature PRs into `development` are squash-merged. |
-| Release | A release is the `development` to `main` PR described in "Branching Model", a step the user triggers, never a side effect of merging feature work. It is prepared by a `release-prep/<version>` PR into `development` and checked by a Haiku agent before the release PR is opened; the tag follows the merge and waits for the maintainer's approval. See Releases. |
-| Hotfix | Branch from `main`, PR to `main`, bump the patch version, then cherry-pick into `development` by follow-up PR when the user instructs it. |
+| Develop → PR | The PR targets `main`; `plugin.json`/manifest version bumps do not happen here. Changes land via PR; the user reviews and merges. Once a change — issue-tracked or informal — is complete, has been through pre-PR review above, and passes its relevant checks, commit, push, and open the PR without waiting for a separate go-ahead; that's normal completion of the work, not a separate action to confirm. Opening a PR is still a stopping point, not a launchpad — it doesn't authorize starting the next unit of work unprompted, and merging remains the user's call, always. |
+| Merge & cleanup | A branch is deleted only after its merge is confirmed, not assumed. Feature PRs into `main` are squash-merged. |
+| Release | A release is a `release-prep/<version>` PR into `main`, a step the user triggers, never a side effect of merging feature work. It is checked by a Haiku agent before it is opened; the tag follows the merge and waits for the maintainer's approval. See Releases. |
 | Dangerous git actions | See Do Not — a prior approval doesn't carry forward to the next instance. |
 | Committing | Review staged changes for anything sensitive before committing, especially in files that don't look like they'd contain any. If a secret is committed anyway, treat it as compromised and flag it to the user for rotation rather than just removing it from the latest commit. |
 | Remote access | The `gh` CLI is available and authenticated — use it for PRs, issues, and other GitHub operations rather than assuming it's missing. If a `git push`/`fetch`/`clone` fails with an SSH error (e.g. `git@github.com: Permission denied (publickey)`), that means this environment's SSH key isn't set up for GitHub — switch the affected remote to HTTPS (`git remote set-url origin https://github.com/<owner>/<repo>.git`) and retry, rather than treating it as a dead end or asking the user to fix SSH first. |
@@ -110,15 +90,14 @@ The release steps for this repo.
 - **Publish:** nothing. There is no package registry and no container registry; users build the image with `podiumctl build`.
 - **Tag and GitHub Release:** `vMAJOR.MINOR.PATCH`, annotated, from `main` after the release PR has merged; tag the merge commit. The release notes are the CHANGELOG section verbatim. Propose the tag and wait for approval; never push one unprompted.
 - **One version for the whole product.** Podium and `podium-reporter` share one `MAJOR.MINOR.PATCH`, the way Kubernetes versions its parts together. Every file in the table below carries the same number at all times; `scripts/versions.test.ts` fails if any of them differ. Releases 0.2.0 to 0.14.3 were cut retroactively at the commit where the reporter's version changed.
-- **Feature PRs never bump the version.** A feature or fix PR into `development` adds its entry under `[Unreleased]` and leaves every file in the table alone, including the mod's `plugin.json` (installed copies update at the next release). Nothing checks this automatically, so the release PR's author confirms the mod's version moved if the mod changed.
-- **A release is the maintainer's decision that `development` is a release candidate.** Do not start one unprompted. Release-candidate gate: `npm test` and `npm run build` pass on the tip of `development` (and `npm run test:mod` and `npm run typecheck:mod` if the mod changed since the last release). `development` may be broken between releases; fix it with ordinary PRs, and do not open the release PR with a known failure.
-- **The bump level comes from `[Unreleased]`.** Read everything that accumulated since the last release (a hotfix counts as one, so the base is the newest tag on `main`). Any breaking entry is a major release, otherwise any new behavior (`feat:`) is a minor release, otherwise a patch. Choose by what the entries change, never by an issue's label: an `enhancement` that only removes unused code or tidies internals is a patch, and one that adds behavior a person can see is a minor. Entries that change only documentation, comments, CI or chores ride along and do not justify a release alone. Never infer major from how big the diff feels; when it is unclear whether a change is a patch or a minor, or breaking at all, ask. A minor release may include breaking changes only before 1.0.0.
+- **Feature PRs never bump the version.** A feature or fix PR into `main` adds its entry under `[Unreleased]` and leaves every file in the table alone, including the mod's `plugin.json` (installed copies update at the next release). Nothing checks this automatically, so the release-prep PR's author confirms the mod's version moved if the mod changed.
+- **A release is the maintainer's decision that `main` is ready to release.** Do not start one unprompted. Release gate: `npm test` and `npm run build` pass on the tip of `main` (and `npm run test:mod` and `npm run typecheck:mod` if the mod changed since the last release). Fix any failure with ordinary PRs first; do not open the release-prep PR with a known failure.
+- **The bump level comes from `[Unreleased]`.** Read everything that accumulated since the last release (the base is the newest tag on `main`). Any breaking entry is a major release, otherwise any new behavior (`feat:`) is a minor release, otherwise a patch. Choose by what the entries change, never by an issue's label: an `enhancement` that only removes unused code or tidies internals is a patch, and one that adds behavior a person can see is a minor. Entries that change only documentation, comments, CI or chores ride along and do not justify a release alone. Never infer major from how big the diff feels; when it is unclear whether a change is a patch or a minor, or breaking at all, ask. A minor release may include breaking changes only before 1.0.0.
 - **Release sequence.**
-  1. Verify `development` (the gate above).
-  2. Branch `release-prep/<version>` from `development`; in one commit, change every file in the table. Open a PR into `development`, to be squash-merged. Run the release check below before opening it.
-  3. After the user merges it, open `development` to `main`. The body says it is to be merged with a regular merge commit and not squashed, names the version and quotes the CHANGELOG section. It carries no `Closes #N`; the issues closed when their own PRs merged. Check the merge dropdown before merging, since `gh pr merge` remembers the last method.
-  4. After the user merges that, sync `main` and `development`, propose the tag and wait for approval.
-- **Hotfixes.** Branch `hotfix/<n>-<slug>` from `main`, write the failing test first, fix, bump the patch version in every file in the table and add a `[X.Y.Z]` section to `CHANGELOG.md` (a hotfix never moves `[Unreleased]`). PR into `main`; the user merges, then tag as above. The backport waits for the user to say so: branch `hotfix/<n>-<slug>-backport` from `development`, `git cherry-pick -x` every commit, keep the hotfix's CHANGELOG section below `[Unreleased]`, and put `Closes #N` in that PR. If a release-prep PR is already merged but unreleased, stop and ask how to order them.
+  1. Verify `main` (the gate above).
+  2. Branch `release-prep/<version>` from `main`; in one commit, change every file in the table. Run the release check below, then open a PR into `main`, to be squash-merged.
+  3. After the user merges it, sync `main`, propose the tag on the merge commit and wait for approval.
+- **An urgent fix** is an ordinary fix PR into `main` followed straight away by a patch release-prep PR; there is no separate hotfix branch.
 
 Everything below changes in the release-prep PR, in the same commit, never as a follow-up after the tag:
 
@@ -147,7 +126,7 @@ It reports a short pass/fail list, with the file and line of each mismatch. The 
 | Phase | Policy |
 |---|---|
 | Filing | Group related reports under one issue by root cause rather than one per symptom — but split back out when a report actually bundles more than one distinct Definition of Done. |
-| Working | Work one open issue at a time by default — closing one, even by a merged PR, doesn't authorize starting the next unprompted — unless the user has deliberately scoped a parallel batch, in which case an orchestrator may run multiple issues at once via sub-agents (the batch's final PR targets the base branch). Each sub-agent stays scoped to its own issue's files; never let one touch a shared, single-section file (e.g. `CHANGELOG.md`'s `[Unreleased]` section, this file's own status content) — independent agents editing the same lines is a guaranteed conflict. |
+| Working | Work one open issue at a time by default — closing one, even by a merged PR, doesn't authorize starting the next unprompted — unless the user has deliberately scoped a parallel batch, in which case an orchestrator may run multiple issues at once via sub-agents (the batch's final PR targets `main`). Each sub-agent stays scoped to its own issue's files; never let one touch a shared, single-section file (e.g. `CHANGELOG.md`'s `[Unreleased]` section, this file's own status content) — independent agents editing the same lines is a guaranteed conflict. |
 | Starting | When told to start an issue (e.g. "review issue N and begin work"), maintain a live task list via TaskCreate/TaskUpdate for the entire duration of the work — every step, including any sub-agents to be spawned — with no exceptions. This is always visible progress tracking, not optional bookkeeping. If TaskCreate/TaskUpdate aren't available in the session (they're off by default on some models), don't fall back to informal status updates — ask the user for permission to add `CLAUDE_CODE_ENABLE_TODO_TOOLS: "1"` to `~/.claude/settings.json`'s `env` block, make the edit once approved, and confirm the tools are now available before proceeding. |
 
 ## Delegation & Sub-agents

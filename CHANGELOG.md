@@ -24,6 +24,8 @@ the changes merged after the reporter's 0.14.3 bump, because it is the first rel
 
 - **No GitHub Actions in this fork.** `.github/workflows/` (CI, the mod version bump check and the PR target check) is removed; `npm test`, `npm run build` and the mod checks are run locally. CONTRIBUTING, the PR template and `CLAUDE.md` say so.
 
+- **One branch: `main`.** This fork has no `development` branch, so `CLAUDE.md`, CONTRIBUTING, the PR template and the README now describe a main-only flow: feature and fix PRs and `release-prep/<version>` PRs all go into `main` and are squash-merged, and the tag follows the release-prep merge. `.github/dependabot.yml`, which opened PRs against `development`, is removed.
+
 ### Fixed
 
 - **The reporter refuses a plan approval whose mode is not one a plan can be approved in.** Approving a plan from Podium sets the session's permission mode, and the mod passed the server's `mode` through unchecked, so a compromised or impersonated server could put a session in `bypassPermissions`. The mod now takes only `auto`, `acceptEdits` or `default` (`PLAN_MODES`) and reports any other approval as refused, leaving the plan dialog to the terminal.

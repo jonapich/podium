@@ -1,14 +1,11 @@
-<!-- Open this PR against `development`, not `main`. Only the maintainer's release and hotfix PRs go to `main`.
-     Wrong base? Use the Edit button next to the title to change it. -->
-
 ## What this changes and why
 
 <!-- One or two sentences. Link the tracking issue if there is one. -->
 
 ## Checklist
 
-- [ ] Targets `development` (or the batch's integration branch, for a parallel-batch sub-agent PR). Only a release or hotfix targets `main`.
-- [ ] No version was bumped, unless this is a release-prep or hotfix PR. A release bumps `version` in
+- [ ] Targets `main` (or the batch's integration branch, for a parallel-batch sub-agent PR).
+- [ ] No version was bumped, unless this is a release-prep PR. A release bumps `version` in
       `mod/podium-reporter/.claude-plugin/plugin.json` and `VERSION` in `hooks/register.ts` together with
       the rest of the files `CLAUDE.md` lists.
 - [ ] If the report format changed, `server/src/fleet/protocol.ts` and `mod/podium-reporter/hooks/protocol.ts`
@@ -18,9 +15,7 @@
 - [ ] `npm test` and `npm run build` pass. If the mod changed, `npm run test:mod` and `npm run typecheck:mod`
       pass too (they need Claude Code installed).
 - [ ] `CHANGELOG.md` has a line under `[Unreleased]` for anything a user would notice.
-- [ ] If this PR targets `development`, the body says it is to be squash-merged and carries `Closes #N` for the issue
-      it resolves (the issue is closed by hand after the merge, since `development` is not the default branch).
-      A `development` to `main` release PR says instead that it is not to be squashed, and carries no `Closes #N`.
+- [ ] The body carries `Closes #N` for the issue it resolves, if there is one. PRs into `main` are squash-merged.
 
 ## Test plan
 
