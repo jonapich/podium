@@ -20,6 +20,12 @@ the changes merged after the reporter's 0.14.3 bump, because it is the first rel
 
 - **The reporter installs from this repository, not from `eengelking-marketplace`.** A `.claude-plugin/marketplace.json` at the root makes this repo a marketplace named `podium` that lists `podium-reporter` from `./mod/podium-reporter`. Install with `/plugin marketplace add jonapich/podium` and `/plugin install podium-reporter@podium`. The update and configure hints in the console and the mod, the README, the user guide, SPEC 4.4 and DECISIONS 12 name `podium-reporter@podium`.
 
+- **Links and install steps point at this fork.** The `git clone` steps in the README, user guide and CONTRIBUTING, the License and Notices links in the console, the `package.json` repository links, and the places to report a security issue (SECURITY.md, CODE_OF_CONDUCT.md, the issue template) now name `jonapich/podium` instead of `eengelking/podium`. GOTCHAS and ARCHITECTURE describe this repo's own `podium` marketplace.
+
+- **No GitHub Actions in this fork.** `.github/workflows/` (CI, the mod version bump check and the PR target check) is removed; `npm test`, `npm run build` and the mod checks are run locally. CONTRIBUTING, the PR template and `CLAUDE.md` say so.
+
+- **One branch: `main`.** This fork has no `development` branch, so `CLAUDE.md`, CONTRIBUTING, the PR template and the README now describe a main-only flow: feature and fix PRs and `release-prep/<version>` PRs all go into `main` and are squash-merged, and the tag follows the release-prep merge. `.github/dependabot.yml`, which opened PRs against `development`, is removed.
+
 ### Fixed
 
 - **The reporter refuses a plan approval whose mode is not one a plan can be approved in.** Approving a plan from Podium sets the session's permission mode, and the mod passed the server's `mode` through unchecked, so a compromised or impersonated server could put a session in `bypassPermissions`. The mod now takes only `auto`, `acceptEdits` or `default` (`PLAN_MODES`) and reports any other approval as refused, leaving the plan dialog to the terminal.

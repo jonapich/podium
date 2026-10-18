@@ -79,7 +79,7 @@ If you think you have found something like this, please report it rather than op
 ## Reporting a vulnerability
 
 Open a private GitHub Security Advisory on this repo:
-[github.com/eengelking/podium](https://github.com/eengelking/podium) → the "Security" tab →
+[github.com/jonapich/podium](https://github.com/jonapich/podium) → the "Security" tab →
 "Report a vulnerability". That is GitHub's built-in private disclosure, so the report stays visible only
 to the maintainer until it is resolved.
 

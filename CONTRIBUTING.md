@@ -26,7 +26,7 @@ If your idea needs one of those, open an issue and say why before writing code.
 You need Node 24 and npm. The mod's own tests and type check also need Claude Code installed.
 
 ```sh
-git clone https://github.com/eengelking/podium.git && cd podium
+git clone https://github.com/jonapich/podium.git && cd podium
 npm install
 npm run dev          # server on http://127.0.0.1:4317, Vite UI on http://localhost:5173
 npm run podium:sim -- --sessions 5 --chaos    # fake sessions, in a second terminal
@@ -48,8 +48,8 @@ npm run typecheck:mod  # the mod against Claude Code's plugin API declarations (
 npm run podium:smoke   # end to end: server, simulator, SSE
 ```
 
-CI runs `npm test` and `npm run build` on every PR into `development` or `main`. It cannot run the two mod checks, because a stock runner
-has no Claude Code, so run those yourself when you touch the mod.
+This fork runs no GitHub Actions, so nothing runs these on a PR: run `npm test` and `npm run build` before you
+open one, and the two mod checks too when you touch the mod.
 
 When you fix a bug in code, add a test that fails for the right reason first, then fix it.
 
@@ -82,12 +82,11 @@ Update the docs that describe your change in the same PR, and add a line under `
 
 Do not bump the version in a feature or fix PR, including one that changes the mod (anything under
 `mod/podium-reporter/` other than its tests). Add a line under `[Unreleased]` in `CHANGELOG.md` and leave the
-version files alone. The maintainer decides when `development` is ready to release. A release-prep PR into
-`development` then sets one number in `plugin.json`, `VERSION` in `mod/podium-reporter/hooks/register.ts`, the three
+version files alone. The maintainer decides when `main` is ready to release. A release-prep PR into
+`main` then sets one number in `plugin.json`, `VERSION` in `mod/podium-reporter/hooks/register.ts`, the three
 `package.json` files and the lockfile (`npm install --package-lock-only`), and renames `[Unreleased]`; a test checks
-that they all match. Installed copies of the mod only update when that number changes. A `development` to `main`
-PR carries the release, and CI (the "Mod version bump check" workflow in `.github/workflows/mod-version-check.yml`)
-fails it if the mod changed and the number did not. The maintainer tags the release after it merges. `CLAUDE.md`,
+that they all match. Installed copies of the mod only update when that number changes, so check by hand that it
+moved if the mod changed. The maintainer tags the release after the release-prep PR merges. `CLAUDE.md`,
 "Releases", has the full list of files and how the bump level is chosen.
 
 If the bump is a new minor version, also move `max` in `REPORTER_SUPPORT` (`server/src/fleet/compat.ts`) to
@@ -107,45 +106,20 @@ no formulaic constructions. Reread what you wrote once before opening the PR.
 
 ## Branching, PRs and merging
 
-> **Open your PR against `development`, not `main`.** GitHub's default branch is `main`, so a fresh clone
-> starts on `main` and the "New pull request" button proposes `main` as the base. Both are the wrong
-> starting point for a change. `main` holds released code and moves only when the maintainer cuts a release.
-> `development` holds unreleased work, and every change lands there first.
-
-Every change lands on a branch, never directly on `development` or `main`, however small. If you work from a
-fork, fork the repo, then branch from `development`, not from the `main` your clone starts on:
+This fork has one long-lived branch, `main`. Every change lands on a branch of its own and reaches `main` through
+a PR, never directly, however small:
 
 ```sh
-git clone https://github.com/<you>/podium.git && cd podium
-git fetch origin development
-git checkout -b <your-branch-name> origin/development
-git config core.hooksPath scripts/hooks   # refuses a commit made on main or development
+git clone https://github.com/jonapich/podium.git && cd podium
+git checkout -b <your-branch-name>
+git config core.hooksPath scripts/hooks   # refuses a commit made on main
 ```
 
-If you have push access, skip the fork and branch from a current `development` in the main repo
-(`git checkout development && git pull`, then `git checkout -b <your-branch-name>`).
+When the change is ready, open the PR against `main` (`gh pr create --base main`). PRs are squash-merged, so
+`main` keeps one commit per PR however many commits your branch has. The PR template has a checklist. Put
+`Closes #N` in the body for the issue the PR resolves; GitHub closes it when the PR merges.
 
-When the change is ready, open the PR with the base set to `development`:
-
-```sh
-gh pr create --base development
-```
-
-On github.com, change the "base" dropdown from `main` to `development` before you click "Create pull request".
-If you opened it against `main` by mistake, use the "Edit" button next to the PR title to change the base; no
-need to close it and start over. A CI check ("PR target check") fails any PR into `main` that is not a release or a hotfix from this repo, so a wrong base shows up as a red check.
-
-Say in the PR body that it is to be squash-merged. This repo keeps one commit per PR on `development`, however
-many commits your branch has. The PR template has a checklist. Put `Closes #N` in the body for the issue the PR
-resolves; the maintainer closes the issue when the PR merges, because GitHub only closes issues for a PR into `main`.
-
-Two kinds of PR go to `main`, and the maintainer opens both: a release (`development` into `main`, merged with a
-regular merge commit and never squashed) and a hotfix (branched from `main`, then cherry-picked back into
-`development`). If you think a fix cannot wait for the next release, say so on the issue instead of opening it
-against `main`.
-
-Only the maintainer merges PRs into `development` or `main`, however small the change looks. Open the PR and wait for
-review.
+Only the maintainer merges PRs into `main`, however small the change looks. Open the PR and wait for review.
 
 ## Filing issues
 

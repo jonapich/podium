@@ -94,7 +94,7 @@ host, and has no dependencies of its own. Install it on your PATH from the repo 
 `bin/podiumctl <command>` (no `node` in front) or `npm run podiumctl --`.
 
 ```sh
-git clone https://github.com/eengelking/podium.git && cd podium && npm link
+git clone https://github.com/jonapich/podium.git && cd podium && npm link
 podiumctl start                     # builds the image on first use, then runs it on http://127.0.0.1:4317
 podiumctl status                    # mode, state, health, URL, boot setting (exit 3 when stopped)
 podiumctl logs -f                   # follow the log
@@ -347,7 +347,7 @@ scripts/agent-tokens-sample.sh --help  # log a running agent's Tokens over time
 | [`docs/DEMO.md`](docs/DEMO.md) | A script and a paste-in prompt for showing Podium to other people |
 | [`docs/THIRD_PARTY_NOTICES.md`](docs/THIRD_PARTY_NOTICES.md) | Credits and licenses for the color theme palettes |
 | [`CHANGELOG.md`](CHANGELOG.md) | What changed in each release |
-| [`CONTRIBUTING.md`](CONTRIBUTING.md) | How to propose and land a change (PRs go to `development`, not `main`) |
+| [`CONTRIBUTING.md`](CONTRIBUTING.md) | How to propose and land a change (PRs go to `main` and are squash-merged) |
 | [`.github/SECURITY.md`](.github/SECURITY.md) | How to report a vulnerability (privately) |
 | [`.github/CODE_OF_CONDUCT.md`](.github/CODE_OF_CONDUCT.md) | Community expectations |
 

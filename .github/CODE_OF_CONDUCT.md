@@ -59,7 +59,7 @@ spaces.
 
 Instances of abusive, harassing, or otherwise unacceptable behavior may be
 reported to the maintainer privately, either via a
-[GitHub Security Advisory](https://github.com/eengelking/podium/security/advisories/new)
+[GitHub Security Advisory](https://github.com/jonapich/podium/security/advisories/new)
 on this repo or by direct contact with [@eengelking](https://github.com/eengelking).
 All reports will be reviewed and investigated promptly and fairly, and the
 maintainer is obligated to respect the privacy and security of the reporter

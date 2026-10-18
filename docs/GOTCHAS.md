@@ -49,8 +49,9 @@ setting changing. The new level shows after your next prompt. This is expected.
 ### Installing the mod from the marketplace fails with "Permission denied (publickey)"
 
 A marketplace entry that points at a subfolder of another repo with the `owner/repo` shorthand makes Claude
-Code clone over SSH. The `podium-reporter` entry uses the full `https://github.com/eengelking/podium.git`
-URL for that reason. If you add your own entry for a public repo, do the same.
+Code clone over SSH. This repo's own `podium` marketplace avoids that: its `podium-reporter` entry uses the
+relative source `./mod/podium-reporter`, so the mod comes from the marketplace's own clone. If you add an
+entry that points at another public repo, use its full `https://` URL.
 
 ## Reporters and machines
 
