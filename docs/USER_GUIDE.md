@@ -20,7 +20,7 @@ There are two parts: the server (the dashboard) and the reporter mod (inside eac
 ### 1. Start the server
 
 ```sh
-git clone https://github.com/eengelking/podium.git && cd podium && npm link
+git clone https://github.com/jonapich/podium.git && cd podium && npm link
 podiumctl start
 ```
 

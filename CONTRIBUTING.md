@@ -26,7 +26,7 @@ If your idea needs one of those, open an issue and say why before writing code.
 You need Node 24 and npm. The mod's own tests and type check also need Claude Code installed.
 
 ```sh
-git clone https://github.com/eengelking/podium.git && cd podium
+git clone https://github.com/jonapich/podium.git && cd podium
 npm install
 npm run dev          # server on http://127.0.0.1:4317, Vite UI on http://localhost:5173
 npm run podium:sim -- --sessions 5 --chaos    # fake sessions, in a second terminal

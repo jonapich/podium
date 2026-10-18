@@ -357,6 +357,9 @@ Places where the spec was silent, ambiguous or wrong, the reading chosen, and wh
     `mod/podium-reporter` in this repo (full `https://` URL, because the `owner/repo` shorthand clones over
     SSH). Install with `/plugin install podium-reporter@eengelking-marketplace`. This repo has no
     marketplace file of its own. SPEC.md was amended to match (4.4, and the deferred item removed).
+    **Superseded in this fork:** this repo now carries its own `.claude-plugin/marketplace.json` (marketplace
+    `podium`, relative source `./mod/podium-reporter`). Install with `/plugin marketplace add jonapich/podium`
+    and `/plugin install podium-reporter@podium`; nothing comes from `eengelking/skills` (DECISIONS 12).
 40. **Inside the container the server binds `0.0.0.0`.** The first spec said the server binds `127.0.0.1`
     by default. In the image it has to listen on all interfaces for the published port to reach it, so
     `podiumctl` publishes it only on the host's `127.0.0.1` (or the `--bind` address). The server's own
@@ -770,7 +773,7 @@ the command line. The token is generated on first start; an empty `PODIUM_TOKEN`
 "auth off" setting. `enable` writes a launchd plist (macOS) or systemd user unit (Linux) that calls
 `podiumctl start` (container; idempotent) or `podiumctl run` (standalone; foreground, restarted only on
 a non-zero exit, so `stop` is not undone). The reporter mod is not containerized: it runs inside each
-Claude Code process and posts to the server's URL. It is installed from `eengelking-marketplace` (39); its
+Claude Code process and posts to the server's URL. It is installed from this repo's own `podium` marketplace (39); its
 `token` option is secret, so it is set with `/plugin configure`, not the `/config` menu.
 
 Verified on macOS with Podman 6.1.2: build, start, token enforcement (401 without, accepted with),

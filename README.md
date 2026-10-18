@@ -94,7 +94,7 @@ host, and has no dependencies of its own. Install it on your PATH from the repo 
 `bin/podiumctl <command>` (no `node` in front) or `npm run podiumctl --`.
 
 ```sh
-git clone https://github.com/eengelking/podium.git && cd podium && npm link
+git clone https://github.com/jonapich/podium.git && cd podium && npm link
 podiumctl start                     # builds the image on first use, then runs it on http://127.0.0.1:4317
 podiumctl status                    # mode, state, health, URL, boot setting (exit 3 when stopped)
 podiumctl logs -f                   # follow the log

@@ -20,6 +20,8 @@ the changes merged after the reporter's 0.14.3 bump, because it is the first rel
 
 - **The reporter installs from this repository, not from `eengelking-marketplace`.** A `.claude-plugin/marketplace.json` at the root makes this repo a marketplace named `podium` that lists `podium-reporter` from `./mod/podium-reporter`. Install with `/plugin marketplace add jonapich/podium` and `/plugin install podium-reporter@podium`. The update and configure hints in the console and the mod, the README, the user guide, SPEC 4.4 and DECISIONS 12 name `podium-reporter@podium`.
 
+- **Links and install steps point at this fork.** The `git clone` steps in the README, user guide and CONTRIBUTING, the License and Notices links in the console, the `package.json` repository links, and the places to report a security issue (SECURITY.md, CODE_OF_CONDUCT.md, the issue template) now name `jonapich/podium` instead of `eengelking/podium`. GOTCHAS and ARCHITECTURE describe this repo's own `podium` marketplace.
+
 ### Fixed
 
 - **The reporter refuses a plan approval whose mode is not one a plan can be approved in.** Approving a plan from Podium sets the session's permission mode, and the mod passed the server's `mode` through unchecked, so a compromised or impersonated server could put a session in `bypassPermissions`. The mod now takes only `auto`, `acceptEdits` or `default` (`PLAN_MODES`) and reports any other approval as refused, leaving the plan dialog to the terminal.
