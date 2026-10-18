@@ -106,12 +106,12 @@ Order of operations for any tracked change.
 
 The release steps for this repo.
 
-- **Verify first:** `npm test` and `npm run build` (CI runs both). If the mod changed, also `npm run test:mod` and `npm run typecheck:mod`, which need Claude Code installed and cannot run in CI.
+- **Verify first:** `npm test` and `npm run build`. If the mod changed, also `npm run test:mod` and `npm run typecheck:mod`, which need Claude Code installed. This fork runs no GitHub Actions, so every check is run locally.
 - **Publish:** nothing. There is no package registry and no container registry; users build the image with `podiumctl build`.
 - **Tag and GitHub Release:** `vMAJOR.MINOR.PATCH`, annotated, from `main` after the release PR has merged; tag the merge commit. The release notes are the CHANGELOG section verbatim. Propose the tag and wait for approval; never push one unprompted.
 - **One version for the whole product.** Podium and `podium-reporter` share one `MAJOR.MINOR.PATCH`, the way Kubernetes versions its parts together. Every file in the table below carries the same number at all times; `scripts/versions.test.ts` fails if any of them differ. Releases 0.2.0 to 0.14.3 were cut retroactively at the commit where the reporter's version changed.
-- **Feature PRs never bump the version.** A feature or fix PR into `development` adds its entry under `[Unreleased]` and leaves every file in the table alone, including the mod's `plugin.json` (installed copies update at the next release). CI's `mod-version-check` runs on PRs into `main`, so it checks the release PR.
-- **A release is the maintainer's decision that `development` is a release candidate.** Do not start one unprompted. Release-candidate gate: `npm test` and `npm run build` pass on the tip of `development` (and `npm run test:mod` and `npm run typecheck:mod` if the mod changed since the last release), and the release PR's CI is green. `development` may be broken between releases; fix it with ordinary PRs, and do not open the release PR with a known failure.
+- **Feature PRs never bump the version.** A feature or fix PR into `development` adds its entry under `[Unreleased]` and leaves every file in the table alone, including the mod's `plugin.json` (installed copies update at the next release). Nothing checks this automatically, so the release PR's author confirms the mod's version moved if the mod changed.
+- **A release is the maintainer's decision that `development` is a release candidate.** Do not start one unprompted. Release-candidate gate: `npm test` and `npm run build` pass on the tip of `development` (and `npm run test:mod` and `npm run typecheck:mod` if the mod changed since the last release). `development` may be broken between releases; fix it with ordinary PRs, and do not open the release PR with a known failure.
 - **The bump level comes from `[Unreleased]`.** Read everything that accumulated since the last release (a hotfix counts as one, so the base is the newest tag on `main`). Any breaking entry is a major release, otherwise any new behavior (`feat:`) is a minor release, otherwise a patch. Choose by what the entries change, never by an issue's label: an `enhancement` that only removes unused code or tidies internals is a patch, and one that adds behavior a person can see is a minor. Entries that change only documentation, comments, CI or chores ride along and do not justify a release alone. Never infer major from how big the diff feels; when it is unclear whether a change is a patch or a minor, or breaking at all, ask. A minor release may include breaking changes only before 1.0.0.
 - **Release sequence.**
   1. Verify `development` (the gate above).
@@ -161,7 +161,7 @@ It reports a short pass/fail list, with the file and line of each mismatch. The 
 ## Commands
 
 - `npm ci` installs dependencies (root workspace: `server` and `frontend`).
-- `npm test` runs the server and frontend tests; `npm run build` builds the UI and server and type-checks `scripts/`. CI runs both.
-- `npm run test:mod` and `npm run typecheck:mod` test and type-check the reporter mod. They need Claude Code installed and do not run in CI.
+- `npm test` runs the server and frontend tests; `npm run build` builds the UI and server and type-checks `scripts/`.
+- `npm run test:mod` and `npm run typecheck:mod` test and type-check the reporter mod. They need Claude Code installed.
 - `npm run dev` runs the server and the Vite dev server together; `npm run podium:sim` feeds the server simulated sessions; `npm run podium:smoke` runs the end-to-end smoke test.
 - `podiumctl` (`node bin/podiumctl`) builds, starts and stops the container or the standalone server; `podiumctl --help` lists its commands.

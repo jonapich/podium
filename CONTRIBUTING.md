@@ -48,8 +48,8 @@ npm run typecheck:mod  # the mod against Claude Code's plugin API declarations (
 npm run podium:smoke   # end to end: server, simulator, SSE
 ```
 
-CI runs `npm test` and `npm run build` on every PR into `development` or `main`. It cannot run the two mod checks, because a stock runner
-has no Claude Code, so run those yourself when you touch the mod.
+This fork runs no GitHub Actions, so nothing runs these on a PR: run `npm test` and `npm run build` before you
+open one, and the two mod checks too when you touch the mod.
 
 When you fix a bug in code, add a test that fails for the right reason first, then fix it.
 
@@ -86,8 +86,7 @@ version files alone. The maintainer decides when `development` is ready to relea
 `development` then sets one number in `plugin.json`, `VERSION` in `mod/podium-reporter/hooks/register.ts`, the three
 `package.json` files and the lockfile (`npm install --package-lock-only`), and renames `[Unreleased]`; a test checks
 that they all match. Installed copies of the mod only update when that number changes. A `development` to `main`
-PR carries the release, and CI (the "Mod version bump check" workflow in `.github/workflows/mod-version-check.yml`)
-fails it if the mod changed and the number did not. The maintainer tags the release after it merges. `CLAUDE.md`,
+PR carries the release; check by hand that the number moved if the mod changed. The maintainer tags the release after it merges. `CLAUDE.md`,
 "Releases", has the full list of files and how the bump level is chosen.
 
 If the bump is a new minor version, also move `max` in `REPORTER_SUPPORT` (`server/src/fleet/compat.ts`) to
@@ -133,7 +132,7 @@ gh pr create --base development
 
 On github.com, change the "base" dropdown from `main` to `development` before you click "Create pull request".
 If you opened it against `main` by mistake, use the "Edit" button next to the PR title to change the base; no
-need to close it and start over. A CI check ("PR target check") fails any PR into `main` that is not a release or a hotfix from this repo, so a wrong base shows up as a red check.
+need to close it and start over.
 
 Say in the PR body that it is to be squash-merged. This repo keeps one commit per PR on `development`, however
 many commits your branch has. The PR template has a checklist. Put `Closes #N` in the body for the issue the PR
