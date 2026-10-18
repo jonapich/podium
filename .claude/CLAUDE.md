@@ -13,7 +13,7 @@ without watching each terminal. Podium watches, and it can also answer a session
 session's owner have both turned that on. It never types into a terminal or changes a session's permission rules.
 
 It ships as a server and UI (this repo, run with `podiumctl` in a Podman container or as a plain Node
-process) and a reporter mod, `podium-reporter`, installed from `eengelking-marketplace`. `docs/SPEC.md` is
+process) and a reporter mod, `podium-reporter`, installed from `jonapich/podium`. `docs/SPEC.md` is
 the source of truth for intended behavior; `docs/ARCHITECTURE.md` records how it was built.
 
 ## Shortcuts
