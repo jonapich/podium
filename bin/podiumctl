@@ -44,7 +44,7 @@ Commands:
   url                 Print the dashboard URL
   token               Print the admin secret (--rotate makes a new one; restart to apply)
   config              Show the settings; \`config set KEY=VALUE [KEY=VALUE ...]\` and \`config unset KEY [KEY ...]\` change them
-  enable              Start on boot / login (launchd on macOS, a systemd user unit on Linux)
+  enable              Start on boot / login (launchd on macOS, a systemd user unit on Linux; not on Windows)
   disable             Stop starting on boot
   shell               Open a shell in the container (container mode)
   rm [--purge --yes]  Remove the container; --purge --yes also deletes the data and the image
@@ -228,6 +228,20 @@ export function maskConfig(file) {
   return shown;
 }
 
+/**
+ * How to spawn npm with `args`. On Windows npm is npm.cmd, which only a shell can run (Node refuses to spawn a
+ * .cmd without one), and Node 24 deprecates passing args alongside `shell`, so it gets one command string.
+ * Only podiumctl's own fixed arguments go here, never user input.
+ */
+export function npmInvocation(args, platform = process.platform) {
+  return platform === 'win32' ? { command: ['npm', ...args].join(' '), args: [], options: { shell: true } } : { command: 'npm', args, options: {} };
+}
+
+/** True when a process command line is a Podium server or a podiumctl wrapper (Windows paths use backslashes). */
+export function isPodiumCommand(cmd) {
+  return /podiumctl|server[\\/]dist[\\/]index\.js/.test(cmd ?? '');
+}
+
 // ---------- environment ----------
 
 const homeDir = () => process.env.PODIUMCTL_HOME || path.join(os.homedir(), '.podium');
@@ -325,14 +339,34 @@ const containerState = () => {
 
 // ---------- standalone ----------
 
+/** The command line of process `pid`. Windows has no `ps`, so ask CIM there. */
+function commandLineOf(pid) {
+  if (process.platform === 'win32') {
+    const query = `(Get-CimInstance Win32_Process -Filter 'ProcessId=${pid}').CommandLine`;
+    return spawnSync('powershell.exe', ['-NoProfile', '-NonInteractive', '-Command', query], { encoding: 'utf8', windowsHide: true }).stdout;
+  }
+  return spawnSync('ps', ['-p', String(pid), '-o', 'command='], { encoding: 'utf8' }).stdout;
+}
+
 function readPid() {
   try {
     const pid = Number(fs.readFileSync(pidPath(), 'utf8'));
+    if (!Number.isInteger(pid) || pid <= 0) return null;
     process.kill(pid, 0);
     // A stale pid file can name a reused pid; only trust a process that is ours.
-    const cmd = spawnSync('ps', ['-p', String(pid), '-o', 'command='], { encoding: 'utf8' }).stdout;
-    return /podiumctl|server\/dist\/index\.js/.test(cmd) ? pid : null;
+    return isPodiumCommand(commandLineOf(pid)) ? pid : null;
   } catch { return null; }
+}
+
+/**
+ * Signal the standalone server. Windows has no SIGTERM: process.kill there ends only that one process, which
+ * would leave the server a `podiumctl run` wrapper started still running, so end the whole tree with taskkill.
+ */
+function killServer(pid, signal) {
+  if (process.platform !== 'win32') { process.kill(pid, signal); return; }
+  const r = spawnSync('taskkill', ['/PID', String(pid), '/T', '/F'], { stdio: 'ignore', windowsHide: true });
+  // taskkill also fails when the process is already gone, which is fine
+  if (r.status !== 0 && readPid() === pid) fail(`could not stop pid ${pid} (taskkill failed; is it running as another user?)`);
 }
 const serverEntry = () => path.join(REPO_ROOT, 'server', 'dist', 'index.js');
 
@@ -357,7 +391,10 @@ async function cmdBuild(cfg) {
     if (r.status !== 0) fail('image build failed');
     say(`Built ${IMAGE}`);
   } else {
-    const run = (args) => { if (spawnSync('npm', args, { cwd: REPO_ROOT, stdio: 'inherit' }).status !== 0) fail(`npm ${args.join(' ')} failed`); };
+    const run = (args) => {
+      const npm = npmInvocation(args);
+      if (spawnSync(npm.command, npm.args, { cwd: REPO_ROOT, stdio: 'inherit', ...npm.options }).status !== 0) fail(`npm ${args.join(' ')} failed`);
+    };
     if (!fs.existsSync(path.join(REPO_ROOT, 'node_modules'))) run(['install']);
     run(['run', 'build', '-w', 'frontend']);
     run(['run', 'build', '-w', 'server']);
@@ -393,7 +430,8 @@ async function cmdStart(cfg) {
     fs.mkdirSync(homeDir(), { recursive: true });
     const out = fs.openSync(logPath(), 'a');
     logFrom = fs.fstatSync(out).size;
-    const child = spawn(process.execPath, [serverEntry()], { cwd: REPO_ROOT, env: standaloneEnv(cfg), detached: true, stdio: ['ignore', out, out] });
+    // windowsHide: on Windows a detached child otherwise gets a console window of its own
+    const child = spawn(process.execPath, [serverEntry()], { cwd: REPO_ROOT, env: standaloneEnv(cfg), detached: true, windowsHide: true, stdio: ['ignore', out, out] });
     child.unref();
     child.once('exit', () => { exited = true; });
     fs.writeFileSync(pidPath(), String(child.pid));
@@ -419,12 +457,12 @@ async function cmdStop(cfg) {
   }
   const pid = readPid();
   if (!pid) { say('Not running'); fs.rmSync(pidPath(), { force: true }); return; }
-  process.kill(pid, 'SIGTERM');
+  killServer(pid, 'SIGTERM');
   for (let i = 0; i < 20; i++) {
     await new Promise((r) => setTimeout(r, 250));
     if (!readPid()) { fs.rmSync(pidPath(), { force: true }); say('Stopped'); return; }
   }
-  process.kill(pid, 'SIGKILL');
+  killServer(pid, 'SIGKILL');
   fs.rmSync(pidPath(), { force: true });
   say('Did not stop within 5 s; killed');
 }
@@ -525,12 +563,14 @@ export function bootUnitStale(text, script) {
 }
 
 function bootState() {
+  if (process.platform === 'win32') return 'not supported on Windows';
   if (!bootEnabled()) return 'disabled';
   const script = fs.realpathSync(fileURLToPath(import.meta.url));
   return bootUnitStale(fs.readFileSync(servicePaths().file, 'utf8'), script) ? 'enabled, but stale (points at an old path; run `podiumctl enable` to rewrite it)' : 'enabled';
 }
 
 function cmdEnable(cfg) {
+  if (process.platform === 'win32') fail('starting on boot is not supported on Windows (podiumctl knows launchd and systemd only). Run `podiumctl start` after you log in.');
   const { kind, file } = servicePaths();
   const standalone = cfg.mode === 'standalone';
   const script = fs.realpathSync(fileURLToPath(import.meta.url));

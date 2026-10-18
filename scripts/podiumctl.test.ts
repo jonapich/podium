@@ -5,7 +5,7 @@ import os from "node:os";
 import path from "node:path";
 import { describe, expect, it } from "vitest";
 import {
-  bootUnitStale, containerRunArgs, launchdPlist, maskConfig, OWN_KEYS, parseArgs, parseEnvFile, PASSTHROUGH, resolveConfig, serializeEnv, serverEnv, stableNodePath, systemdUnit,
+  bootUnitStale, containerRunArgs, isPodiumCommand, launchdPlist, maskConfig, npmInvocation, OWN_KEYS, parseArgs, parseEnvFile, PASSTHROUGH, resolveConfig, serializeEnv, serverEnv, stableNodePath, systemdUnit,
 // @ts-expect-error bin/podiumctl has no extension, so tsc cannot find it; vitest loads it as ESM
 } from "../bin/podiumctl";
 
@@ -330,6 +330,89 @@ describe("podiumctl start (standalone) with the port taken", () => {
   });
 });
 
+describe("podiumctl on Windows", () => {
+  it("can run npm on this platform", () => {
+    const npm = npmInvocation(["--version"]);
+    const r = spawnSync(npm.command, npm.args, { encoding: "utf8", ...npm.options });
+    expect(r.error).toBeUndefined();
+    expect(r.status).toBe(0);
+  });
+
+  it("runs npm through the shell on win32 only, where it is npm.cmd", () => {
+    const args = ["run", "build", "-w", "server"];
+    expect(npmInvocation(args, "linux")).toEqual({ command: "npm", args, options: {} });
+    expect(npmInvocation(args, "darwin")).toEqual({ command: "npm", args, options: {} });
+    expect(npmInvocation(args, "win32")).toEqual({ command: "npm run build -w server", args: [], options: { shell: true } });
+  });
+
+  it("knows a server command line by either path separator", () => {
+    expect(isPodiumCommand("/usr/bin/node /r/server/dist/index.js")).toBe(true);
+    expect(isPodiumCommand("C:\\nvm4w\\nodejs\\node.exe C:\\Users\\me\\podium\\server\\dist\\index.js")).toBe(true);
+    expect(isPodiumCommand("\"C:\\Program Files\\nodejs\\node.exe\" C:\\r\\bin\\podiumctl run --mode standalone")).toBe(true);
+    expect(isPodiumCommand("node /r/other.js")).toBe(false);
+    expect(isPodiumCommand(undefined)).toBe(false);
+  });
+
+  /** A stand-in server: a node process running <root>/server/dist/index.js, recorded in <home>/podium.pid. */
+  function fakeServer(entry: string[]) {
+    // Not named podiumctl-*: that name in the path would make any process here look like Podium.
+    const root = fs.mkdtempSync(path.join(os.tmpdir(), "pctl-root-"));
+    const file = path.join(root, ...entry);
+    fs.mkdirSync(path.dirname(file), { recursive: true });
+    fs.writeFileSync(file, "setInterval(() => {}, 1000);\n");
+    const home = path.join(root, "home");
+    fs.mkdirSync(home);
+    const child = spawn(process.execPath, [file], { stdio: "ignore" });
+    fs.writeFileSync(path.join(home, "podium.pid"), String(child.pid));
+    const exited = new Promise<void>((r) => child.once("exit", () => r()));
+    const cleanup = async () => { child.kill("SIGKILL"); await exited; fs.rmSync(root, { recursive: true, force: true }); };
+    return { home, child, exited, cleanup };
+  }
+  // Port 9 (discard) answers nothing, so the health check cannot reach a real Podium on this machine.
+  const NO_SERVER = ["--mode", "standalone", "--port", "9"];
+
+  it("status shows a running standalone server, and stop ends it", async () => {
+    const s = fakeServer(["server", "dist", "index.js"]);
+    try {
+      const st = ctl(s.home, "status", ...NO_SERVER);
+      expect(st.stdout).toContain(`running (pid ${s.child.pid})`);
+      expect(st.status).toBe(0);
+      const stop = ctl(s.home, "stop", ...NO_SERVER);
+      expect(stop.stdout).toContain("Stopped");
+      await s.exited;
+      expect(fs.existsSync(path.join(s.home, "podium.pid"))).toBe(false);
+    } finally {
+      await s.cleanup();
+    }
+  });
+
+  it("status does not trust a pid file that names some other process", async () => {
+    const s = fakeServer(["other.js"]);
+    try {
+      const st = ctl(s.home, "status", ...NO_SERVER);
+      expect(st.stdout).toContain("stopped");
+      expect(st.status).toBe(3);
+    } finally {
+      await s.cleanup();
+    }
+  });
+
+  it.runIf(process.platform === "win32")("enable says Windows has no boot service and writes no systemd unit", () => {
+    const home = fs.mkdtempSync(path.join(os.tmpdir(), "podiumctl-"));
+    try {
+      // os.homedir() reads USERPROFILE on Windows: point it at the temp dir so nothing lands in the real home.
+      const r = spawnSync(process.execPath, [BIN, "enable", "--mode", "standalone"], {
+        encoding: "utf8", env: { ...process.env, PODIUMCTL_HOME: home, USERPROFILE: home, HOME: home },
+      });
+      expect(r.status).toBe(1);
+      expect(r.stderr).toContain("not supported on Windows");
+      expect(fs.existsSync(path.join(home, ".config", "systemd"))).toBe(false);
+    } finally {
+      fs.rmSync(home, { recursive: true, force: true });
+    }
+  });
+});
+
 describe("podiumctl boot unit staleness (#227)", () => {
   it("is stale when the unit does not point at the running script", () => {
     expect(bootUnitStale("<string>/r/bin/podiumctl.old</string>", "/r/bin/podiumctl")).toBe(true);
@@ -350,7 +433,8 @@ describe("podiumctl CLI", () => {
     expect(ctl(home, "token").status).toBe(1);
     expect(ctl(home, "token", "--rotate").stdout.trim()).toMatch(/^[0-9a-f]{48}$/);
     const file = path.join(home, "config.env");
-    expect(fs.statSync(file).mode & 0o777).toBe(0o600);
+    // Windows has no POSIX mode bits: chmod there only toggles read-only, so stat reports 0o666.
+    if (process.platform !== "win32") expect(fs.statSync(file).mode & 0o777).toBe(0o600);
     const shown = ctl(home, "config").stdout;
     expect(shown).not.toContain(fs.readFileSync(file, "utf8").split("PODIUM_TOKEN=")[1].trim());
     expect(ctl(home, "config", "set", "NOPE=1").status).toBe(1);
