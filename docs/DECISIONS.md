@@ -139,13 +139,17 @@ repo is for project-agnostic skills, and this mod is tied to one project. The `o
 Claude Code clone over SSH, which fails for anyone without a GitHub SSH key.
 **Cost.** A mod fix needs a `plugin.json` version bump or installed copies never update. CI checks it
 (`mod-version-check`).
+**Superseded in this fork.** This repository is its own marketplace: `.claude-plugin/marketplace.json`
+names it `podium` and lists `podium-reporter` with the relative source `./mod/podium-reporter`, so the mod
+installs from this repo's own code (`/plugin marketplace add jonapich/podium`, then
+`/plugin install podium-reporter@podium`) and never from `eengelking/skills`.
 
 ## 13. The `token` option is sensitive
 
 **Choice.** The mod's `token` option is marked `sensitive`.
 **Why.** It is a credential, so Claude Code keeps it out of the plain settings display.
 **Cost.** A sensitive option has no row in the `/config` menu. Set it with
-`/plugin configure podium-reporter@eengelking-marketplace`. (Found when testing, 2026-10-11.)
+`/plugin configure podium-reporter@podium`. (Found when testing, 2026-10-11.)
 
 ## 14. The project is named Podium, in one repo
 
@@ -462,7 +466,7 @@ settings screen.
 - *DNS rebinding.* Accepted when found, fixed in #256 (see 33): the server now refuses a `Host` it does not expect. The reads are still open by design (7.1).
 - *Open reads and three open writes.* `GET` routes, Remove on a lost card, closing a wall notice and the background-sessions switch take no token (7.1). They change only how the wall looks.
 - *Development dependencies.* Accepted when found, cleared in #269: `npm audit` listed `vitest`, `vite`'s `esbuild` and `tinypool`, none of which ships in the image. The test tooling moved to vitest 5, vite 8 and `@vitejs/plugin-react` 6, and `npm audit` (with dev dependencies) now reports nothing. The root `package.json` names vitest itself, because the two workspaces no longer share one copy for the `scripts/` tests to find; and `frontend/src/jest-dom.d.ts` carries jest-dom's matcher types for vitest 5's two-parameter `Assertion` (GOTCHAS).
-- *A server's own page loads Google Fonts,* which tells Google that someone opened Podium. The policy names that one origin.
+- *A server's own page loaded Google Fonts,* which told Google that someone opened Podium. Fixed since: the fonts are bundled from `@fontsource` and the policy names no third-party origin.
 
 **Cost.** The policy must be edited by hand when the page gains an origin or an inline script.
 

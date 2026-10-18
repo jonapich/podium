@@ -168,16 +168,16 @@ Bazzite, but not yet through a reboot.)
 
 ## Report a real session
 
-The reporter is a Claude Code mod in `mod/podium-reporter/`. Install it from the eengelking
-marketplace, in Claude Code:
+The reporter is a Claude Code mod in `mod/podium-reporter/`. Install it from this repository,
+which is its own plugin marketplace, in Claude Code:
 
 ```
-/plugin marketplace add eengelking/skills
-/plugin install podium-reporter@eengelking-marketplace
+/plugin marketplace add jonapich/podium
+/plugin install podium-reporter@podium
 ```
 
 If the server uses a token (`podiumctl start` generates one), enter it with
-`/plugin configure podium-reporter@eengelking-marketplace`. On your own machine that is the admin secret
+`/plugin configure podium-reporter@podium`. On your own machine that is the admin secret
 (`podiumctl token`). If someone runs the server for a group, they make you a token in Admin: enter it as
 `token`, and your name as `userName`. The token option is secret, so it has no row in the `/config` menu.
 Without a token the server accepts, or with a token that does not belong to your name, the reporter gets
@@ -195,12 +195,12 @@ off the wall, because Claude Code's background daemon also runs idle twins and s
 In the session, `/podium` prints the dashboard link, the connection state and report counts, and
 `/podium name <text>` gives the session a display name. The status line under the prompt reads
 `podium vX.Y.Z ● N live` (N is the cards on the wall, so a session that has not run yet reads 0), or `podium vX.Y.Z ○ offline` while the server is unreachable (reports queue up and go out
-when it is back). When the mod and the server are on versions that do not match, it ends in `· update mod` or `· upgrade server`, and in `· update available` when the server supports a newer mod than yours. To update the mod, run `claude plugin update podium-reporter@eengelking-marketplace` and then `/reload-plugins` in the session (see "Updating the mod" in [docs/USER_GUIDE.md](docs/USER_GUIDE.md)). Claude Code puts a `⚠` and the mod's name in front of the line; that is how it draws every
+when it is back). When the mod and the server are on versions that do not match, it ends in `· update mod` or `· upgrade server`, and in `· update available` when the server supports a newer mod than yours. To update the mod, run `claude plugin update podium-reporter@podium` and then `/reload-plugins` in the session (see "Updating the mod" in [docs/USER_GUIDE.md](docs/USER_GUIDE.md)). Claude Code puts a `⚠` and the mod's name in front of the line; that is how it draws every
 mod's status line, not a Podium warning (see [docs/GOTCHAS.md](docs/GOTCHAS.md)). Effort is read from each model request, so a change made with `/effort` shows after
 the session's next prompt, not when you pick it.
 
-Set the mod's options with `/plugin configure podium-reporter@eengelking-marketplace`, or in
-`~/.claude/settings.json` under `pluginConfigs`, `podium-reporter@eengelking-marketplace`, `options`
+Set the mod's options with `/plugin configure podium-reporter@podium`, or in
+`~/.claude/settings.json` under `pluginConfigs`, `podium-reporter@podium`, `options`
 (`podium-reporter` for a copy loaded with `--plugin-dir`). Claude Code keeps `token` in its secure storage
 instead. Everything except `token` also has a row in the `/config` menu.
 

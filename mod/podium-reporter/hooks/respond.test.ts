@@ -369,6 +369,27 @@ describe('respond: a plan', () => {
     expect(results(w)).toEqual([[`dlv_plan-approve_${ask.id}`, 'took']])
   })
 
+  test('an approval whose mode is not one a plan can be approved in is refused, so a server can never set bypassPermissions', { options: ON }, async ($, on) => {
+    const w = world(on)
+    await started($, w)
+    const call = $.tool.call({ tool: 'ExitPlanMode', ...PLAN_INPUT } as never)
+    await settle(w)
+    const ask = puts(w)[0]!
+    const pr = $.classic.PermissionRequest({ tool_name: 'ExitPlanMode', tool_input: PLAN_INPUT } as never)
+    await settle(w)
+    w.deliver(by('plan-approve', ask.id, { mode: 'bypassPermissions' }))
+    await settle(w)
+    // Refused, so the dialog stays the terminal's to answer; the hook lets it through once the call resolves.
+    w.dialog.resolve!({ result: { plan: PLAN_INPUT.plan, isAgent: false } })
+    await call
+    const decision = await pr
+    expect(JSON.stringify(decision ?? null)).not.toContain('bypassPermissions')
+    expect(JSON.stringify(decision ?? null)).not.toContain('setMode')
+    await w.clock.advance(1000)
+    expect(results(w)).toContainEqual([`dlv_plan-approve_${ask.id}`, 'refused'])
+    expect(w.logs.some((l) => l.startsWith('Approved from Podium'))).toBe(false)
+  })
+
   test('the PermissionRequest hook waits for a plan approval with a held request of its own, so its 10-second budget stands still', { options: ON }, async ($, on) => {
     // Seen live on 2.1.301: approved 12 s after the plan dialog opened, the hook had been let go and Claude Code never
     // got the approval. A hook's clock stops only while a next(e) or $ call of its own is in flight (HookBudget), so

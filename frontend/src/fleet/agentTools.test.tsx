@@ -115,7 +115,7 @@ describe("why the panel shows Last tool", () => {
   it("explains the fallback and how to update when the mod is older than 0.2.0", () => {
     const { container } = panel({ reporter: "mod", reporterVersion: "0.1.0", compat: "outdated" }, { toolCounts: null, toolCalls: 11, lastTool: "Bash" });
     expect(container.textContent).toMatch(NOTE);
-    expect(container.textContent).toContain("claude plugin update podium-reporter@eengelking-marketplace");
+    expect(container.textContent).toContain("claude plugin update podium-reporter@podium");
     expect(container.textContent).toContain("/reload-plugins");
     expect(container.textContent).toContain("Bash");
     expect(container.textContent).not.toContain("—");

@@ -9,7 +9,7 @@ limitations is under "Known issues" in `docs/ARCHITECTURE.md`; this file is the 
 
 The server has a token and the mod is not sending a right one. Get it with `podiumctl token` (or, on a
 shared server, ask the owner for your own token) and enter it with
-`/plugin configure podium-reporter@eengelking-marketplace`. A person's token only works with the `userName`
+`/plugin configure podium-reporter@podium`. A person's token only works with the `userName`
 it was made for, and a revoked or rotated-away token is refused too. The mod logs the refusal once and
 tries again about once a minute, so queued reports go out within a minute of the settings being right.
 
@@ -22,9 +22,9 @@ supports a newer `major.minor` than this mod, so a newer mod exists that the ser
 always starts with the mod's version (`podium v0.11.1 ● 3 live`). Reports still arrive either way. Only `major.minor` is compared, so a patch release never
 triggers it, and a version the server cannot read (the simulator's `0.1.0-sim`) shows nothing. `/podium`
 prints both versions. A mod older than 0.3.0 cannot show this itself, but the dashboard still marks its card.
-To fix `update mod`, run `claude plugin update podium-reporter@eengelking-marketplace`, then `/reload-plugins` in the
+To fix `update mod`, run `claude plugin update podium-reporter@podium`, then `/reload-plugins` in the
 session. A running session keeps the version it loaded until you do. If the update says it is already at the latest
-version, refresh the listing first with `claude plugin marketplace update eengelking-marketplace`.
+version, refresh the listing first with `claude plugin marketplace update podium`.
 
 ### The token option has no row in the `/config` menu
 
@@ -297,7 +297,7 @@ Both need Claude Code installed, and CI cannot run them. Run them locally when y
 Forks are off in a non-interactive run, and the Agent tool answers "Agent type 'fork' not found". Set
 `CLAUDE_CODE_FORK_SUBAGENT=1` for the run. Subagents launching subagents work without it. To watch a nested
 run without touching your own server, copy the mod, point its `serverUrl` default at a server on another port
-with its own `PODIUM_DB`, and pass `--settings '{"enabledPlugins":{"podium-reporter@eengelking-marketplace":false}}'`
+with its own `PODIUM_DB`, and pass `--settings '{"enabledPlugins":{"podium-reporter@podium":false}}'`
 so the installed copy stays quiet. The simulator's `--nested` flag shows the same shapes with no run at all.
 
 ### A server test fails now and then with a 404, a 401 or a body of `{}`, and passes on the next run

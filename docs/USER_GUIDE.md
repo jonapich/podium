@@ -35,12 +35,12 @@ To have it start when you log in, run `podiumctl enable`.
 In Claude Code:
 
 ```
-/plugin marketplace add eengelking/skills
-/plugin install podium-reporter@eengelking-marketplace
+/plugin marketplace add jonapich/podium
+/plugin install podium-reporter@podium
 ```
 
 Then give it the token. Print it with `podiumctl token`, and enter it with
-`/plugin configure podium-reporter@eengelking-marketplace`. If someone else runs the server, ask them for
+`/plugin configure podium-reporter@podium`. If someone else runs the server, ask them for
 your own token and enter it as `token`, with your name as `userName` (see "Admin" below). To run one
 server for several people, see "Several people on one Podium" in the README: it covers the bind address,
 the firewall, the names the server accepts (`PODIUM_ALLOWED_HOSTS`, for reaching it by a name rather than an
@@ -280,7 +280,7 @@ which is why the option is off by default.
 To turn it on:
 
 1. Update the mod if the section says your session reports an older version (see "Updating the mod" below).
-2. In Claude Code on the machine that runs the sessions, run `/plugin configure podium-reporter@eengelking-marketplace`
+2. In Claude Code on the machine that runs the sessions, run `/plugin configure podium-reporter@podium`
    and set **Send an agent's recent activity** (`activityFeed`) to on. The same setting is in the `/config` menu, or
    you can set `activityFeed` to `true` under `pluginConfigs` in `~/.claude/settings.json` (the README lists where).
 3. A changed setting reloads the mod, so a session that is already running should pick it up. If the panel still
@@ -328,7 +328,7 @@ first wins. `mockup/podium-respond.html` shows every case.
 It is off until all of these are on: the server's **Respond from Podium** switch (Admin > Settings > Feature
 flags), the **Agent activity feed** switch next to it, and on the session's machine the mod's **Respond from
 Podium** option (`respond`) together with **Send an agent's recent activity** (`activityFeed`). Set the option in
-Claude Code with `/plugin configure podium-reporter@eengelking-marketplace`. It needs podium-reporter 0.14.0 or
+Claude Code with `/plugin configure podium-reporter@podium`. It needs podium-reporter 0.14.0 or
 later and a server started with a token. Its levels:
 
 - `off`: nothing. The default.
@@ -582,7 +582,7 @@ in the README for the snippet to add to `~/.claude/settings.json`.
 The mod and the server are released separately, so you update them separately. A card marked `reporter 0.1.0 · update`
 means the mod in that session is older than the server supports. To update it:
 
-1. In a shell, run `claude plugin update podium-reporter@eengelking-marketplace`. It prints
+1. In a shell, run `claude plugin update podium-reporter@podium`. It prints
    `Checking for updates...` and then the new version, or says it is already at the latest version. Inside a
    session you can use `/plugin`, open the Installed tab, pick `podium-reporter` and choose Update now.
 2. Apply it. A running session keeps the version it loaded, so run `/reload-plugins` in it, or start a new
@@ -591,11 +591,11 @@ means the mod in that session is older than the server supports. To update it:
    line goes away after the next report.
 
 If the command says it is already at the latest version but the card is still marked, the marketplace has
-not published a newer mod yet. Refresh its listing with `claude plugin marketplace update eengelking-marketplace`
+not published a newer mod yet. Refresh its listing with `claude plugin marketplace update podium`
 and run the update again. Refreshing the listing alone does not update the installed plugin.
 
 Marketplaces other than Anthropic's do not update plugins by themselves. To have Claude Code do it, open `/plugin`,
-choose the Marketplaces tab, pick `eengelking-marketplace` and turn on auto-update. It updates the plugin
+choose the Marketplaces tab, pick `podium` and turn on auto-update. It updates the plugin
 on disk some minutes after you send a first message, and the new version loads in your next session.
 
 A card marked `· upgrade server` is the other direction: the mod is newer than the server. Upgrade the server
@@ -651,5 +651,5 @@ podiumctl disable                 # if you enabled start on boot
 podiumctl rm --purge --yes        # removes the container, its data volume and the image
 ```
 
-Then remove the mod with `claude plugin uninstall podium-reporter@eengelking-marketplace`, and delete `~/.podium`
+Then remove the mod with `claude plugin uninstall podium-reporter@podium`, and delete `~/.podium`
 if you want the saved config and token gone too.
