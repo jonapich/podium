@@ -1,5 +1,5 @@
 // Response headers for every route (#249): the console cannot be framed or sniffed, and the page may only run its own
-// script, talk to its own server and load the two font hosts index.html names.
+// script, talk to its own server and load its own (bundled) fonts. No third-party host is allowed.
 import { createHash } from 'node:crypto';
 import type { RequestHandler } from 'express';
 
@@ -8,8 +8,8 @@ export function securityHeaders(opts: { scriptHashes?: string[] } = {}): Request
   const csp = [
     "default-src 'self'",
     `script-src ${scripts}`,
-    "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
-    "font-src 'self' https://fonts.gstatic.com",
+    "style-src 'self' 'unsafe-inline'",
+    "font-src 'self'",
     "img-src 'self' data:",
     "connect-src 'self'",
     "object-src 'none'",

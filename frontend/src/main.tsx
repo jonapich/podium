@@ -1,5 +1,13 @@
 import { StrictMode, useEffect, useState } from "react";
 import { createRoot } from "react-dom/client";
+// Fonts are bundled and served by Podium itself, so opening the console makes no request to a third-party host.
+import "@fontsource/jetbrains-mono/400.css";
+import "@fontsource/jetbrains-mono/500.css";
+import "@fontsource/jetbrains-mono/600.css";
+import "@fontsource/schibsted-grotesk/400.css";
+import "@fontsource/schibsted-grotesk/500.css";
+import "@fontsource/schibsted-grotesk/600.css";
+import "@fontsource/schibsted-grotesk/700.css";
 import { FleetApp } from "./fleet/FleetApp";
 import { AdminView } from "./fleet/admin/AdminView";
 import { HistoryView } from "./fleet/HistoryView";

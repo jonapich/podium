@@ -462,7 +462,7 @@ settings screen.
 - *DNS rebinding.* Accepted when found, fixed in #256 (see 33): the server now refuses a `Host` it does not expect. The reads are still open by design (7.1).
 - *Open reads and three open writes.* `GET` routes, Remove on a lost card, closing a wall notice and the background-sessions switch take no token (7.1). They change only how the wall looks.
 - *Development dependencies.* Accepted when found, cleared in #269: `npm audit` listed `vitest`, `vite`'s `esbuild` and `tinypool`, none of which ships in the image. The test tooling moved to vitest 5, vite 8 and `@vitejs/plugin-react` 6, and `npm audit` (with dev dependencies) now reports nothing. The root `package.json` names vitest itself, because the two workspaces no longer share one copy for the `scripts/` tests to find; and `frontend/src/jest-dom.d.ts` carries jest-dom's matcher types for vitest 5's two-parameter `Assertion` (GOTCHAS).
-- *A server's own page loads Google Fonts,* which tells Google that someone opened Podium. The policy names that one origin.
+- *A server's own page loaded Google Fonts,* which told Google that someone opened Podium. Fixed since: the fonts are bundled from `@fontsource` and the policy names no third-party origin.
 
 **Cost.** The policy must be edited by hand when the page gains an origin or an inline script.
 

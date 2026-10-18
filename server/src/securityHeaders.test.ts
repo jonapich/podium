@@ -28,9 +28,9 @@ describe('securityHeaders', () => {
     expect(csp).toContain("base-uri 'none'");
     expect(csp).toContain("connect-src 'self'");
     expect(csp).toContain("form-action 'self'");
-    // The fonts the page loads are the only third-party origins.
-    expect(csp).toContain('https://fonts.googleapis.com');
-    expect(csp).toContain('https://fonts.gstatic.com');
+    // Fonts are bundled, so no third-party origin is allowed anywhere in the policy.
+    expect(csp).toContain("font-src 'self';");
+    expect(csp).not.toMatch(/https?:\/\//);
     expect(csp).not.toMatch(/script-src[^;]*'unsafe-inline'/);
   });
 
