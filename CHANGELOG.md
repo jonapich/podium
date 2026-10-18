@@ -28,6 +28,8 @@ the changes merged after the reporter's 0.14.3 bump, because it is the first rel
 
 ### Fixed
 
+- **`podiumctl` standalone mode works on Windows.** `build --mode standalone` always failed with "npm install failed", because npm is `npm.cmd` there and Node spawns a `.cmd` only through a shell; podiumctl now runs npm through the shell on Windows only. `status` said "stopped" while the server ran, and `stop` could not find it, because the pid check called `ps` and matched only `server/dist/index.js` with forward slashes; on Windows it now reads the process's command line from `Get-CimInstance Win32_Process` and matches either separator. `stop` ends the server's whole process tree with `taskkill /T /F`, since Windows has no SIGTERM, and the standalone server no longer opens a console window of its own. `enable` now fails on Windows with a message, where it used to write a systemd unit, and `status` shows "on boot: not supported on Windows".
+
 - **The reporter refuses a plan approval whose mode is not one a plan can be approved in.** Approving a plan from Podium sets the session's permission mode, and the mod passed the server's `mode` through unchecked, so a compromised or impersonated server could put a session in `bypassPermissions`. The mod now takes only `auto`, `acceptEdits` or `default` (`PLAN_MODES`) and reports any other approval as refused, leaving the plan dialog to the terminal.
 
 ## [1.1.0] - 2026-10-16
