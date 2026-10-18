@@ -140,7 +140,7 @@ function DocModal(props: { kind: Kind; s: SessionView; a: AgentView; load: Load;
     note = "Showing the first 400 characters.";
     if (s.reporter === "mod") {
       note += reporterBelow(s, FULL_TEXT_REPORTER_MINOR)
-        ? ` The full text needs podium-reporter 0.10.0 or later. This session reports ${s.reporterVersion}. Run claude plugin update podium-reporter@eengelking-marketplace, then /reload-plugins in that session.`
+        ? ` The full text needs podium-reporter 0.10.0 or later. This session reports ${s.reporterVersion}. Run claude plugin update podium-reporter@podium, then /reload-plugins in that session.`
         : " To see the full text, turn on the fullPrompts option (Send full prompts and answers) of podium-reporter.";
     }
   }

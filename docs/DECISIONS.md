@@ -139,13 +139,17 @@ repo is for project-agnostic skills, and this mod is tied to one project. The `o
 Claude Code clone over SSH, which fails for anyone without a GitHub SSH key.
 **Cost.** A mod fix needs a `plugin.json` version bump or installed copies never update. CI checks it
 (`mod-version-check`).
+**Superseded in this fork.** This repository is its own marketplace: `.claude-plugin/marketplace.json`
+names it `podium` and lists `podium-reporter` with the relative source `./mod/podium-reporter`, so the mod
+installs from this repo's own code (`/plugin marketplace add jonapich/podium`, then
+`/plugin install podium-reporter@podium`) and never from `eengelking/skills`.
 
 ## 13. The `token` option is sensitive
 
 **Choice.** The mod's `token` option is marked `sensitive`.
 **Why.** It is a credential, so Claude Code keeps it out of the plain settings display.
 **Cost.** A sensitive option has no row in the `/config` menu. Set it with
-`/plugin configure podium-reporter@eengelking-marketplace`. (Found when testing, 2026-10-11.)
+`/plugin configure podium-reporter@podium`. (Found when testing, 2026-10-11.)
 
 ## 14. The project is named Podium, in one repo
 

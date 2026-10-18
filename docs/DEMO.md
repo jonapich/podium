@@ -44,8 +44,8 @@ viewer sees both at once.
    recording. Layout changes mid-take are distracting.
 
 4. In the second terminal, start Claude Code with the mod installed. Install it once from the
-   marketplace (`/plugin marketplace add eengelking/skills`, then
-   `/plugin install podium-reporter@eengelking-marketplace`), or load it from a checkout for this
+   marketplace (`/plugin marketplace add jonapich/podium`, then
+   `/plugin install podium-reporter@podium`), or load it from a checkout for this
    session:
 
    ```sh

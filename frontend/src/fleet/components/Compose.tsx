@@ -37,7 +37,7 @@ export function OffNote(props: { edge: "off" | "old"; reason: CantReason; report
       ) : (
         <span>
           It reports with {props.reporterVersion ? `podium-reporter ${props.reporterVersion}` : "an older podium-reporter"}. Responding needs a newer reporter with the <code>respond</code> option on: run{" "}
-          <code>claude plugin update podium-reporter@eengelking-marketplace</code>, then <code>/reload-plugins</code> in that session. Sessions reported by the settings hooks or run with <code>claude -p</code> can't be answered at all.
+          <code>claude plugin update podium-reporter@podium</code>, then <code>/reload-plugins</code> in that session. Sessions reported by the settings hooks or run with <code>claude -p</code> can't be answered at all.
         </span>
       )}
     </div>

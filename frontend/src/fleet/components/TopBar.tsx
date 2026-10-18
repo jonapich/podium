@@ -17,7 +17,7 @@ export function TopBar(props: { page: string; phase: Phase; reporters: number; o
           reporter count, so everything after it would shift. Leave that space empty for now. */}
       <ConnectionPill phase={phase} reporters={reporters} />
       {!!props.outdated && (
-        <span className="pill warn" role="status" title="Update the podium-reporter mod from eengelking-marketplace">
+        <span className="pill warn" role="status" title="Update the podium-reporter mod from the podium marketplace">
           <span className="dot warn" aria-hidden="true" />
           {props.outdated} reporter{props.outdated === 1 ? "" : "s"} need{props.outdated === 1 ? "s" : ""} an update
         </span>

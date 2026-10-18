@@ -18,6 +18,8 @@ the changes merged after the reporter's 0.14.3 bump, because it is the first rel
 
 - **The console no longer loads Google Fonts.** JetBrains Mono and Schibsted Grotesk are now bundled with the UI from the `@fontsource` packages and served by Podium itself, so opening the console makes no request to a third-party host. The Content-Security-Policy drops `fonts.googleapis.com` and `fonts.gstatic.com`: styles and fonts come from the server only. SPEC 7.7 and DECISIONS 31 say so.
 
+- **The reporter installs from this repository, not from `eengelking-marketplace`.** A `.claude-plugin/marketplace.json` at the root makes this repo a marketplace named `podium` that lists `podium-reporter` from `./mod/podium-reporter`. Install with `/plugin marketplace add jonapich/podium` and `/plugin install podium-reporter@podium`. The update and configure hints in the console and the mod, the README, the user guide, SPEC 4.4 and DECISIONS 12 name `podium-reporter@podium`.
+
 ### Fixed
 
 - **The reporter refuses a plan approval whose mode is not one a plan can be approved in.** Approving a plan from Podium sets the session's permission mode, and the mod passed the server's `mode` through unchecked, so a compromised or impersonated server could put a session in `bypassPermissions`. The mod now takes only `auto`, `acceptEdits` or `default` (`PLAN_MODES`) and reports any other approval as refused, leaving the plan dialog to the terminal.

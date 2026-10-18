@@ -56,7 +56,7 @@ export function OrchestratorDetail(props: { s: SessionView; now: number; onBack:
         </dl>
         {!s.loop && s.status !== "done" && reporterBelow(s, 4) && (
           <div className="note">
-            Steps, tools and skills need podium-reporter 0.4.0 or later. This session reports {s.reporterVersion}. Run claude plugin update podium-reporter@eengelking-marketplace, then /reload-plugins in that session.
+            Steps, tools and skills need podium-reporter 0.4.0 or later. This session reports {s.reporterVersion}. Run claude plugin update podium-reporter@podium, then /reload-plugins in that session.
           </div>
         )}
         {s.loop && <ToolChips key={s.id} counts={s.loop.toolCounts} calls={s.loop.toolCalls} lastTool={s.loop.lastTool} />}

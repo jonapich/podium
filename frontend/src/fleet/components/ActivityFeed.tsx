@@ -13,7 +13,7 @@ import { nameKey } from "../respond";
 // says so instead, ahead of any note about the reporter, and keeps checking so it comes back when the flag is on again.
 
 export const ACTIVITY_REPORTER_MINOR = 13;
-const UPDATE = "Run claude plugin update podium-reporter@eengelking-marketplace, then /reload-plugins in that session.";
+const UPDATE = "Run claude plugin update podium-reporter@podium, then /reload-plugins in that session.";
 
 const ICON_TOOL = (
   <svg width="12" height="12" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.6" aria-hidden="true">
@@ -242,7 +242,7 @@ export function ActivityFeed(props: { s: SessionView; loop: string; title: strin
               `The activity feed needs podium-reporter 0.13.0 or later. This session reports ${s.reporterVersion}. ${UPDATE}`
             ) : (
               <>
-                Turn on the <code>activityFeed</code> option (Send an agent’s recent activity) of podium-reporter to see them: in Claude Code, run <code>/plugin configure podium-reporter@eengelking-marketplace</code>. Each entry is redacted and cut to 300 characters before it is sent.
+                Turn on the <code>activityFeed</code> option (Send an agent’s recent activity) of podium-reporter to see them: in Claude Code, run <code>/plugin configure podium-reporter@podium</code>. Each entry is redacted and cut to 300 characters before it is sent.
               </>
             )}
           </div>

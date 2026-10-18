@@ -180,7 +180,7 @@ export function AgentDetail(props: { s: SessionView; a: AgentView; now: number; 
         </dl>
         {a.toolCounts === null && reporterLacksToolCounts(s) && (
           <div className="note">
-            Tool counts need podium-reporter 0.2.0 or later. This session reports {s.reporterVersion}. Run claude plugin update podium-reporter@eengelking-marketplace, then /reload-plugins in that session.
+            Tool counts need podium-reporter 0.2.0 or later. This session reports {s.reporterVersion}. Run claude plugin update podium-reporter@podium, then /reload-plugins in that session.
           </div>
         )}
         {a.toolCounts !== null && <ToolChips key={a.id} counts={a.toolCounts} calls={a.toolCalls} lastTool={a.lastTool} />}

@@ -227,10 +227,9 @@ Added after the first build. `docs/ARCHITECTURE.md` ("Running as a service") rec
   (Linux). In container mode the unit runs `podiumctl start`; in standalone mode it runs `podiumctl run`
   (foreground, restarted only after a non-zero exit, so `stop` is not undone). The unit names the `node` that ran `enable`; when that is a Homebrew Cellar path (`<prefix>/Cellar/<formula>/<version>/bin/node`) it names `<prefix>/opt/<formula>/bin/node` instead, which a `brew upgrade` leaves in place. `status` reports a unit that does not name the current script path as stale; running `enable` again rewrites it.
 - **The mod is not containerized.** It runs inside each Claude Code process and posts to `serverUrl`.
-  It is installed from `eengelking-marketplace`: `eengelking/skills` lists `podium-reporter` in its
-  `.claude-plugin/marketplace.json` with a `git-subdir` source pointing at `mod/podium-reporter` in this
-  repo (a full `https://` URL; the `owner/repo` shorthand clones over SSH). Users run
-  `/plugin install podium-reporter@eengelking-marketplace`. This repo carries no marketplace file. The
+  It is installed from the `podium` marketplace, which is this repository: its `.claude-plugin/marketplace.json`
+  lists `podium-reporter` with the relative source `./mod/podium-reporter`. Users run
+  `/plugin marketplace add jonapich/podium` and `/plugin install podium-reporter@podium`. The
   mod's version is set in `plugin.json` and in `VERSION` in `hooks/register.ts`, kept equal by `scripts/versions.test.ts`. The `token` option is `sensitive`, so it
   is set with `/plugin configure`, not the `/config` menu. `claude --plugin-dir` stays the way to work on
   the mod.
@@ -463,7 +462,7 @@ Declare in `plugin.json` (**Assumption:** confirm the exact `userConfig` field s
 |---|---|---|---|
 | `serverUrl` | string | `http://127.0.0.1:4317` | Where to POST. |
 | `token` | string (secret if supported) | empty | Sent as `X-Podium-Token` when non-empty: a person's token from Admin (7.7), or the admin secret. |
-| `userName` | string | empty | The person's name as the server owner entered it. Sent as `Report.userName`, with `Report.machine`; the server accepts a report made with a person's token only when the name matches. Empty sends neither. Claude Code keeps it in `~/.claude/settings.json` under `pluginConfigs["podium-reporter@eengelking-marketplace"].options` (the key is `podium-reporter` for a `--plugin-dir` load). |
+| `userName` | string | empty | The person's name as the server owner entered it. Sent as `Report.userName`, with `Report.machine`; the server accepts a report made with a person's token only when the name matches. Empty sends neither. Claude Code keeps it in `~/.claude/settings.json` under `pluginConfigs["podium-reporter@podium"].options` (the key is `podium-reporter` for a `--plugin-dir` load). |
 | `flushIntervalMs` | number | `1000` | Minimum time between reports while something changes. |
 | `heartbeatMs` | number | `5000` | Report at least this often even when nothing changed. |
 | `sessionName` | string | empty | Override display name for this machine's sessions (rare). |
@@ -471,7 +470,7 @@ Declare in `plugin.json` (**Assumption:** confirm the exact `userConfig` field s
 | `explainFailures` | boolean | `false` | Phase 5 only. When true, ask a small model to explain a failure (costs tokens). |
 | `fullPrompts` | boolean | `false` | When true, send each agent's whole task prompt and final answer as `promptText` and `answerText` (6.4). Off by default: only the 400-character excerpts are sent. |
 | `activityFeed` | boolean | `false` | When true, send the activity feed (`activity`, 6.4) of each loop the server's reply lists as watched: its tool calls and the text it writes, the last 20, each redacted and cut to 300 characters. Also sends `session.activityFeed`. Off by default: nothing is captured and `watch` is ignored. Title "Send an agent's recent activity". |
-| `respond` | string, one of `off`, `questions`, `questions-and-plans`, `everything` | `off` | What this session accepts from Podium (#206, 5.3 "Responding"). `off`: nothing. `questions`: answers to questions, and new messages while idle. `questions-and-plans`: the above, plus approving or rejecting a plan. `everything`: the above, plus allowing or denying a tool (allow once only), and `/clear`, `/compact`. Any other value reads as `off`. It needs `activityFeed` on as well; with that off the mod accepts nothing. Title "Respond from Podium". Set with `/plugin configure podium-reporter@eengelking-marketplace`. The mod enforces its own level and never relies on the server for it. |
+| `respond` | string, one of `off`, `questions`, `questions-and-plans`, `everything` | `off` | What this session accepts from Podium (#206, 5.3 "Responding"). `off`: nothing. `questions`: answers to questions, and new messages while idle. `questions-and-plans`: the above, plus approving or rejecting a plan. `everything`: the above, plus allowing or denying a tool (allow once only), and `/clear`, `/compact`. Any other value reads as `off`. It needs `activityFeed` on as well; with that off the mod accepts nothing. Title "Respond from Podium". Set with `/plugin configure podium-reporter@podium`. The mod enforces its own level and never relies on the server for it. |
 
 Read via the `options` argument of `register`. A config change reloads the module.
 
@@ -729,7 +728,7 @@ Only `major.minor` is compared, so a mod-only patch fix never warns. `checkRepor
 | Result | Meaning | What to do |
 |---|---|---|
 | `ok` | Inside the range. | Nothing. |
-| `outdated` | Below `min`. | Update the mod: `claude plugin update podium-reporter@eengelking-marketplace`, then `/reload-plugins`. |
+| `outdated` | Below `min`. | Update the mod: `claude plugin update podium-reporter@podium`, then `/reload-plugins`. |
 | `newer` | Above `max`. | Upgrade the server. |
 | `unknown` | The version is not `X.Y.Z` (the simulator's `0.1.0-sim`, for one). | Nothing. No warning is shown. |
 
@@ -1277,7 +1276,7 @@ Phases run in order. Each ends with committed, passing, runnable work. Inside a 
 - **Scope:** `README.md`, `docs/ARCHITECTURE.md`, `.env.example`.
 - **Depends on:** all above.
 - **Acceptance:**
-  1. `README.md` explains what Podium is, how to run the server and UI, how to install the mod (from `eengelking-marketplace`, or `claude --plugin-dir mod/podium-reporter` for a session), how to run the server with `podiumctl` (4.4), how to run the simulator, the env vars (`PORT`, `HOST`, `PODIUM_DB`, `PODIUM_TOKEN`, `STALE_AFTER_MS`, `DROP_AFTER_MS`, `LINGER_MS`) and what is sent off the session (section 6.4).
+  1. `README.md` explains what Podium is, how to run the server and UI, how to install the mod (from the `podium` marketplace (this repo), or `claude --plugin-dir mod/podium-reporter` for a session), how to run the server with `podiumctl` (4.4), how to run the simulator, the env vars (`PORT`, `HOST`, `PODIUM_DB`, `PODIUM_TOKEN`, `STALE_AFTER_MS`, `DROP_AFTER_MS`, `LINGER_MS`) and what is sent off the session (section 6.4).
   2. `docs/ARCHITECTURE.md` documents the final architecture, the mod API findings, deviations from this spec with reasons, known issues, and the verification evidence.
   3. `.env.example` lists the new env vars with defaults.
   4. No `TODO` is left in code without a matching entry under "Known issues".
