@@ -25,6 +25,13 @@ function freePort(): Promise<number> {
 
 const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
 
+// Windows has no SIGTERM: child.kill('SIGTERM') ends the process at once, so the server's handler never runs and
+// the exit code is null. There the test sends the signal's name over IPC and the child raises it on itself, which
+// runs the same handler the real signal does elsewhere.
+const WINDOWS = process.platform === 'win32';
+const RAISE_ON_MESSAGE =
+  'data:text/javascript,process.on("message",(s)=>process.emit(s,s));process.channel?.unref();';
+
 describe('the default text output', () => {
   it('is the same lines as before the logger, for startup, reports, refusals, sweeps and shutdown', async () => {
     const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'podium-text-'));
@@ -46,10 +53,12 @@ describe('the default text output', () => {
       PODIUM_LOG_SHIP_HEADERS: '',
       PODIUM_LOG_SHIP_BUFFER: '',
     };
-    const child = spawn(process.execPath, ['--import', 'tsx', 'src/index.ts'], { cwd: SERVER_DIR, env });
+    const args = [...(WINDOWS ? ['--import', RAISE_ON_MESSAGE] : []), '--import', 'tsx', 'src/index.ts'];
+    const stdio: ('pipe' | 'ipc')[] = WINDOWS ? ['pipe', 'pipe', 'pipe', 'ipc'] : ['pipe', 'pipe', 'pipe'];
+    const child = spawn(process.execPath, args, { cwd: SERVER_DIR, env, stdio });
     let out = '';
-    child.stdout.on('data', (d) => (out += d));
-    child.stderr.on('data', (d) => (out += d));
+    child.stdout!.on('data', (d) => (out += d));
+    child.stderr!.on('data', (d) => (out += d));
     const exited = new Promise<number | null>((r) => child.on('exit', (code) => r(code)));
     try {
       for (let i = 0; i < 100 && !out.includes('Podium fleet console'); i++) await sleep(100);
@@ -63,7 +72,8 @@ describe('the default text output', () => {
       const done = { ...r, session: { ...r.session, id: 'text-output-done', status: 'done' as const, endReason: 'prompt_input_exit' } };
       expect((await post(done)).status).toBe(200);
       await sleep(2500); // the first session goes stale and is dropped; the ended one is swept
-      child.kill('SIGTERM');
+      if (WINDOWS) child.send('SIGTERM');
+      else child.kill('SIGTERM');
       expect(await exited).toBe(0);
     } finally {
       child.kill('SIGKILL');
