@@ -1,0 +1,4 @@
+# Check out text files with LF on every OS and git client, whatever its own line-ending setting.
+* text=auto eol=lf
+
+*.png binary
